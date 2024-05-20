@@ -1,8 +1,11 @@
 package map;
 
 import javafx.scene.canvas.GraphicsContext;
+import obstacles.*;
 import javafx.scene.image.Image;
 import personnages.Player;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TileMap {
 
@@ -10,6 +13,7 @@ public class TileMap {
     private final int height;
     private final int tileSize;
     private final int[][] map;
+    private final Obstacle[][] obstacles;
     private Image tileImage;
     private Player player;
 
@@ -18,6 +22,7 @@ public class TileMap {
         this.height = height;
         this.tileSize = tileSize;
         this.map = new int[width][height];
+        this.obstacles = new Obstacle[width][height];
 
         // Initialiser la carte avec des valeurs par défaut (0)
         for (int x = 0; x < width; x++) {
@@ -39,10 +44,48 @@ public class TileMap {
             throw new RuntimeException("Failed to load tile image", e);
         }
     }
+    
+    
+    public void initObstacles(int[][] obstacleMatrix, String obstacleImagePath) {
+        for (int x = 0; x < obstacleMatrix.length; x++) {
+            for (int y = 0; y < obstacleMatrix[x].length; y++) {
+                if (obstacleMatrix[x][y] == 1) {
+                    Rock rock = new Rock(x, y, obstacleImagePath);
+                    setObstacle(rock);
+                }
+            }
+        }
+    }
+
+    
+    public void setObstacle(Obstacle obstacle) {
+        if (obstacle.getX() >= 0 && obstacle.getX() < map.length &&
+            obstacle.getY() >= 0 && obstacle.getY() < map[0].length) {
+            obstacles[obstacle.getX()][obstacle.getY()] = obstacle;
+        }
+    }
 
     // Ajouter un joueur à la carte
     public void addPlayer(Player player) {
         this.player = player;
+    }
+    
+    public boolean isTraversable(int x, int y) {
+        if (x < 0 || x >= map.length || y < 0 || y >= map[0].length) {
+            return false;
+        }
+        return obstacles[x][y] == null || obstacles[x][y].isTraversable();
+    }
+    public List<Obstacle> getObstacles() {
+        List<Obstacle> obstacleList = new ArrayList<>();
+        for (int x = 0; x < obstacles.length; x++) {
+            for (int y = 0; y < obstacles[x].length; y++) {
+                if (obstacles[x][y] != null) {
+                    obstacleList.add(obstacles[x][y]);
+                }
+            }
+        }
+        return obstacleList;
     }
 
     // Dessiner la carte
@@ -54,6 +97,10 @@ public class TileMap {
                 }
                 // Tu pourras ajouter des conditions ici pour d'autres types de tuiles
             }
+        }
+        
+        for (Obstacle obstacle : getObstacles()) {
+            obstacle.draw(gc);
         }
 
         // Dessiner le joueur
@@ -70,4 +117,9 @@ public class TileMap {
             player.move(0, 0); // Pour l'instant, on ne déplace pas le joueur
         }
     }
+
+	public double getTileSize() {
+		// TODO Auto-generated method stub
+		return tileSize;
+	}
 }

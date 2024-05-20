@@ -1,26 +1,29 @@
 package personnages;
 
-import javafx.scene.image.Image;
 import application.Main;
+import javafx.scene.image.Image;
+import javafx.geometry.Rectangle2D;
 
 public class Player {
-    private int x; // Position x en nombre de tuiles
-    private int y; // Position y en nombre de tuiles
+    private double x; // Position x en nombre de tuiles
+    private double y; // Position y en nombre de tuiles
     private final int tileSize;
     private final Image playerImage;
+    private final double speed; // Nouvelle variable de vitesse 
 
-    public Player(int startX, int startY, int tileSize, String imagePath) {
+    public Player(int startX, int startY, int tileSize, String imagePath, double speed) {
         this.x = startX;
         this.y = startY;
         this.tileSize = tileSize;
         this.playerImage = new Image(imagePath);
+        this.speed = speed;
     }
 
-    public int getX() {
+    public double getX() {
         return x;
     }
 
-    public int getY() {
+    public double getY() {
         return y;
     }
 
@@ -28,30 +31,36 @@ public class Player {
         return playerImage;
     }
 
-    public void setX(int x) {
+    public void setX(double x) {
         this.x = x;
     }
 
-    public void setY(int y) {
+    public void setY(double y) {
         this.y = y;
+    }
+    public double getSpeed() {
+        return speed;
     }
 
     // Déplacer le joueur (exemple, pour l'animation)
-    public void move(int dx, int dy) {
+    public void move(double dx, double dy) {
         this.x += dx;
         this.y += dy;
+        System.out.println(this.x);
+        System.out.println(Main.getMapHeight() * tileSize);
 
         // Assurer que le joueur reste dans les limites de la carte
         if (this.x < 0) {
             this.x = 0;
-        } else if (this.x >= Main.getMapWidth()) {
-            this.x = Main.getMapWidth() - 1;
+        } else if (this.x >= Main.getMapWidth()-1) {
+            this.x = Main.getMapWidth()-1;
+            System.out.println("sortie de map");
         }
 
         if (this.y < 0) {
             this.y = 0;
-        } else if (this.y >= Main.getMapHeight()) {
-            this.y = Main.getMapHeight() - 1;
+        } else if (this.y >= Main.getMapHeight()-1) {
+            this.y = Main.getMapHeight()-1;
         }
     }
 
@@ -62,5 +71,8 @@ public class Player {
 
     public double getPixelY() {
         return y * tileSize;
+    }
+    public Rectangle2D getBounds() {
+        return new Rectangle2D(x, y, tileSize, tileSize);
     }
 }

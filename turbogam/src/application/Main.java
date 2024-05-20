@@ -3,6 +3,7 @@ package application;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import map.TileMap;
@@ -10,9 +11,6 @@ import personnages.Player;
 
 import java.util.HashSet;
 import java.util.Set;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-
 
 public class Main extends Application {
 
@@ -33,9 +31,33 @@ public class Main extends Application {
         // Créer et initialiser la carte des tuiles
         TileMap tileMap = new TileMap(getMapWidth(), getMapHeight(), TILE_SIZE);
         tileMap.loadTileImages("file:tile/floor1.png");
+        
+        int[][] obstacleMatrix = {
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+            };
+        
+        tileMap.initObstacles(obstacleMatrix, "file:tile/pierre.png");
 
-        // Créer et ajouter le joueur
-        Player player = new Player(5, 5, TILE_SIZE, "file:tile/personnage.png");
+        // Créer et ajouter le joueur avec une vitesse de déplacement
+        double playerSpeed = 0.05; // Ajuste cette valeur pour changer la vitesse
+        Player player = new Player(5, 5, TILE_SIZE, "file:tile/personnage.png", playerSpeed);
         tileMap.addPlayer(player);
 
         // Créer la racine de la scène
@@ -47,7 +69,8 @@ public class Main extends Application {
         primaryStage.setTitle("Tile-based Game");
         primaryStage.setScene(scene);
         primaryStage.show();
-        
+
+        // Gestion des événements de clavier
         scene.setOnKeyPressed(event -> pressedKeys.add(event.getCode()));
         scene.setOnKeyReleased(event -> pressedKeys.remove(event.getCode()));
 
@@ -55,11 +78,11 @@ public class Main extends Application {
         new GameLoop(canvas, tileMap, player, pressedKeys).start();
     }
 
-	public static int getMapHeight() {
-		return MAP_HEIGHT;
-	}
-
 	public static int getMapWidth() {
 		return MAP_WIDTH;
+	}
+
+	public static int getMapHeight() {
+		return MAP_HEIGHT;
 	}
 }

@@ -1,11 +1,13 @@
 package application;
 
 import javafx.animation.AnimationTimer;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import map.TileMap;
 import personnages.Player;
+import obstacles.Obstacle;
 
 import java.util.Set;
 
@@ -38,17 +40,37 @@ public class GameLoop extends AnimationTimer {
     }
 
     private void updatePlayerPosition() {
+        double dx = 0;
+        double dy = 0;
+
         if (pressedKeys.contains(KeyCode.UP)) {
-            player.move(0, -1);
+            dy -= player.getSpeed();
         }
         if (pressedKeys.contains(KeyCode.DOWN)) {
-            player.move(0, 1);
+            dy += player.getSpeed();
         }
         if (pressedKeys.contains(KeyCode.LEFT)) {
-            player.move(-1, 0);
+            dx -= player.getSpeed();
         }
         if (pressedKeys.contains(KeyCode.RIGHT)) {
-            player.move(1, 0);
+            dx += player.getSpeed();
+        }
+
+        // Vérifier les collisions avec les obstacles
+        double newX = player.getX()*tileMap.getTileSize() + dx;
+        double newY = player.getY()*tileMap.getTileSize() + dy;
+        Rectangle2D playerBounds = new Rectangle2D(newX, newY, tileMap.getTileSize(), tileMap.getTileSize());
+
+        boolean collisionDetected = false;
+        for (Obstacle obstacle : tileMap.getObstacles()) {
+            if (obstacle != null && playerBounds.intersects(obstacle.getBounds())) {
+                collisionDetected = true;
+                break;
+            }
+        }
+
+        if (!collisionDetected) {
+            player.move(dx, dy);
         }
     }
 }
