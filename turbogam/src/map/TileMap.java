@@ -1,19 +1,24 @@
 package map;
 
 import javafx.scene.canvas.GraphicsContext;
+import personnages.Enemy;
 import obstacles.*;
 import javafx.scene.image.Image;
 import personnages.Player;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 public class TileMap {
 
     private final int width;
     private final int height;
+    private static final int MAP_WIDTH = 25;
+    private static final int MAP_HEIGHT = 18;
     private final int tileSize;
     private final int[][] map;
     private final Obstacle[][] obstacles;
+    private final List<Enemy> enemies;
     private Image tileImage;
     private Player player;
 
@@ -23,6 +28,7 @@ public class TileMap {
         this.tileSize = tileSize;
         this.map = new int[width][height];
         this.obstacles = new Obstacle[width][height];
+        this.enemies = new ArrayList<>();
 
         // Initialiser la carte avec des valeurs par défaut (0)
         for (int x = 0; x < width; x++) {
@@ -70,6 +76,23 @@ public class TileMap {
         this.player = player;
     }
     
+    public void addEnemy(Enemy enemy) {
+        enemies.add(enemy);
+    }
+    public void removeDeadEnemies() {
+        Iterator<Enemy> iterator = enemies.iterator();
+        while (iterator.hasNext()) {
+            Enemy enemy = iterator.next();
+            if (enemy.getHealth() <= 0) {
+                iterator.remove();
+            }
+        }
+    }
+    
+    public List<Enemy> getEnemies() {
+        return enemies;
+    }
+    
     public boolean isTraversable(int x, int y) {
         if (x < 0 || x >= map.length || y < 0 || y >= map[0].length) {
             return false;
@@ -102,6 +125,9 @@ public class TileMap {
         for (Obstacle obstacle : getObstacles()) {
             obstacle.draw(gc);
         }
+        for (Enemy enemy : enemies ) {
+        	enemy.draw(gc);
+        }
 
         // Dessiner le joueur
         if (player != null) {
@@ -111,6 +137,9 @@ public class TileMap {
 
     // Mettre à jour la carte (par exemple, déplacer des tuiles, ajouter des animations, etc.)
     public void update() {
+    	
+    	removeDeadEnemies();
+    	
         // Logique de mise à jour de la carte
         if (player != null) {
             // Exemple de déplacement du joueur (à remplacer par la logique de contrôle)
@@ -122,4 +151,11 @@ public class TileMap {
 		// TODO Auto-generated method stub
 		return tileSize;
 	}
+	public static int getMapHeight(){
+		return MAP_HEIGHT;
+	}
+	public static int getMapWidth(){
+		return MAP_WIDTH;
+	}
+	
 }
