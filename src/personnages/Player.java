@@ -15,7 +15,9 @@ public class Player {
     private Image skullImage;
     private int attack;
     private Inventory inventory;
-    private double range;
+
+    public String direction;
+    private int money;
     
 
     public Player(int startX, int startY, int tileSize, String imagePath, double speed) {
@@ -33,7 +35,24 @@ public class Player {
         this.skullImage = new Image("file:tile/pixelart_skull.png");
         this.setAttack(10);
         this.inventory = new Inventory();
-        this.range = 0.5;
+        this.direction = "right";
+        this.money = 100;
+    }
+    
+    public int getMoney() {
+        return money;
+    }
+
+    public void addMoney(int amount) {
+        money += amount;
+    }
+
+    public boolean spendMoney(int amount) {
+        if (money >= amount) {
+            money -= amount;
+            return true;
+        }
+        return false;
     }
 
 
@@ -110,19 +129,26 @@ public class Player {
     public double getPixelX() {
         return x * tileSize;
     }
+    
+    public void setDirection (String direction) {
+    	this.direction = direction;
+    }
 
     public double getPixelY() {
         return y * tileSize;
     }
+    public Rectangle2D getAttackBounds() {
+        return new Rectangle2D(x*tileSize-(tileSize/2-3), y*tileSize-(tileSize/2-3), tileSize+3, tileSize+3);
+    }
     public Rectangle2D getBounds() {
-        return new Rectangle2D((x+range)*tileSize, (y+range)*tileSize, tileSize, tileSize);
+        return new Rectangle2D(x*tileSize, y*tileSize, tileSize, tileSize);
     }
 
 	public int getAttack() {
 		return attack;
 	}
 	public void attackEnemy(Enemy enemy) {
-        if (this.getBounds().intersects(enemy.getBounds())) {
+        if (this.getAttackBounds().intersects(enemy.getAttackBounds())) {
             enemy.decreaseHealth(attack);
         }
         else {

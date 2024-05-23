@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import map.World;
 import personnages.Player;
 import personnages.Enemy;
+import personnages.PNJ;
 import objet.GameObject;
 import objet.Sword;
 
@@ -26,7 +27,7 @@ import java.util.Set;
 
 public class Main extends Application {
 
-    private static final int TILE_SIZE = 32;
+    public static final int TILE_SIZE = 32;
     private static final int MAP_WIDTH = 25;
     private static final int MAP_HEIGHT = 18;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
@@ -50,15 +51,16 @@ public class Main extends Application {
 
         // Ajouter les éléments d'interface utilisateur pour la vie et l'inventaire
         healthLabel = new Label("Health: 100");
-        root.setTop(healthLabel);
-        BorderPane.setAlignment(healthLabel, Pos.TOP_LEFT);
-        BorderPane.setMargin(healthLabel, new Insets(10));
+        HBox healthBox = new HBox(healthLabel);
+        root.setTop(healthBox);
+        BorderPane.setAlignment(healthBox, Pos.TOP_LEFT);
+        BorderPane.setMargin(healthBox, new Insets(10));
 
         inventoryDisplay = new HBox(10);
         root.setTop(inventoryDisplay);
         BorderPane.setAlignment(inventoryDisplay, Pos.TOP_RIGHT);
         BorderPane.setMargin(inventoryDisplay, new Insets(10));
-
+        
         // Créer la scène
         Scene scene = new Scene(root, MAP_WIDTH * TILE_SIZE, MAP_HEIGHT * TILE_SIZE);
         primaryStage.setTitle("Tile-based Game");
@@ -72,7 +74,6 @@ public class Main extends Application {
         // Initialiser et démarrer le jeu
         initGame();
     }
-
     private void initGame() {
         double playerSpeed = 0.05; // Ajuste cette valeur pour changer la vitesse (pixels par frame)
         player = new Player(5, 5, TILE_SIZE, "file:tile/personnage.png", playerSpeed);
@@ -104,6 +105,9 @@ public class Main extends Application {
         World world1 = new World(MAP_WIDTH, MAP_HEIGHT, TILE_SIZE, player, "file:tile/floor1.png", obstacleMatrix1);
         world1.getTileMap().addEnemy(new Enemy(5, 10, TILE_SIZE, "file:tile/orc.png", 100, 10));
         world1.getTileMap().addGameObject(new Sword(10, 10, TILE_SIZE, "file:tile/sword.png", 10));
+        PNJ pnj1 = new PNJ(10, 10, "file:tile/pnj.png");
+        pnj1.addItem(new Sword(0, 0, TILE_SIZE, "file:tile/sword.png", 10));
+        
         worlds.add(world1);
 
         // Monde 2
@@ -128,8 +132,8 @@ public class Main extends Application {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
         };
         World world2 = new World(MAP_WIDTH, MAP_HEIGHT, TILE_SIZE, player, "file:tile/floor2.png", obstacleMatrix2);
-        world2.getTileMap().addEnemy(new Enemy(15, 15, TILE_SIZE, "file:tile/orc.png", 100, 10));
         world2.getTileMap().addGameObject(new Sword(15, 15, TILE_SIZE, "file:tile/sword.png", 10));
+        world2.getTileMap().addPNJ(pnj1);
         worlds.add(world2);
 
         if (gameLoop != null) {

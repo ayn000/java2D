@@ -1,6 +1,7 @@
 package map;
 
 import javafx.scene.canvas.GraphicsContext;
+import personnages.PNJ;
 import objet.*;
 import personnages.Enemy;
 import obstacles.*;
@@ -24,6 +25,7 @@ public class TileMap {
     
     private Image tileImage;
     private Player player;
+    private List<PNJ> pnjs;
 
     public TileMap(int width, int height, int tileSize) {
         this.width = width;
@@ -33,6 +35,7 @@ public class TileMap {
         this.obstacles = new Obstacle[width][height];
         this.enemies = new ArrayList<>();
         this.gameObjects = new ArrayList<>();
+        this.pnjs = new ArrayList<>();
 
         // Initialiser la carte avec des valeurs par défaut (0)
         for (int x = 0; x < width; x++) {
@@ -65,6 +68,13 @@ public class TileMap {
                 }
             }
         }
+    }
+    public void addPNJ(PNJ pnj) {
+        pnjs.add(pnj);
+    }
+
+    public List<PNJ> getPNJs() {
+        return pnjs;
     }
 
     
@@ -143,6 +153,9 @@ public class TileMap {
         }
         for (GameObject gameObject : gameObjects) {
             gameObject.draw(gc);
+        }
+        for (PNJ pnj : pnjs) {
+            gc.drawImage(pnj.getImage(), pnj.getX() * tileSize, pnj.getY() * tileSize, tileSize, tileSize);
         }
         
         

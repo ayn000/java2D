@@ -3,8 +3,9 @@ package application;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.geometry.Rectangle2D;
@@ -20,6 +21,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import personnages.PNJ;
 
 public class GameLoop extends AnimationTimer {
 
@@ -30,8 +32,7 @@ public class GameLoop extends AnimationTimer {
     private long lastHealthUpdate = 0;
     private static final long HEALTH_UPDATE_INTERVAL = 500_000_000;
     private final Runnable onPlayerDeath;
-    private Label healthLabel;
-    private HBox inventoryDisplay;
+   
 
     public GameLoop(Canvas canvas, List<World> worlds, Set<KeyCode> pressedKeys, Runnable onPlayerDeath, Label healthLabel, HBox inventoryDisplay) {
         this.canvas = canvas;
@@ -39,8 +40,7 @@ public class GameLoop extends AnimationTimer {
         this.currentWorldIndex = 0;
         this.pressedKeys = pressedKeys;
         this.onPlayerDeath = onPlayerDeath;
-        this.healthLabel = healthLabel;
-        this.inventoryDisplay = inventoryDisplay;
+        
     }
 
     @Override
@@ -53,6 +53,7 @@ public class GameLoop extends AnimationTimer {
         handlePlayerAttack();
         handleObjectCollection();
         handleWorldTransition();
+        handlePNJInteraction();
 
         // Dessiner la carte
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -60,13 +61,29 @@ public class GameLoop extends AnimationTimer {
         getCurrentTileMap().draw(gc);
 
         // Mettre à jour l'interface utilisateur
-        updateHealthDisplay();
-        updateInventoryDisplay();
-
+        drawHealthDisplay(gc);
+        drawInventoryDisplay(gc);
         if (getCurrentPlayer().isDead()) {
             stop(); // Arrêter la boucle de jeu
             onPlayerDeath.run(); // Redémarrer le jeu
         }
+    }
+    private void handlePNJInteraction() {
+        if (pressedKeys.contains(KeyCode.F)) { // Supposons que la touche F soit utilisée pour interagir
+            for (PNJ pnj : getCurrentTileMap().getPNJs()) {
+                if (isPlayerNearPNJ(pnj)) {
+                    pnj.interactWithPlayer(getCurrentPlayer());
+                    pressedKeys.remove(KeyCode.F); // Empêche l'interaction continue
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean isPlayerNearPNJ(PNJ pnj) {
+        double playerX = getCurrentPlayer().getX();
+        double playerY = getCurrentPlayer().getY();
+        return Math.abs(playerX - pnj.getX()) < 1.5 && Math.abs(playerY - pnj.getY()) < 1.5; // Vérifier si le joueur est proche du PNJ
     }
 
     private void handleWorldTransition() {
@@ -99,11 +116,11 @@ public class GameLoop extends AnimationTimer {
     private void handlePlayerAttack() {
         if (pressedKeys.contains(KeyCode.E)) {
             System.out.println("Attack key pressed");
-            Rectangle2D playerBounds = getCurrentPlayer().getBounds();
+            Rectangle2D playerBounds = getCurrentPlayer().getAttackBounds();
             System.out.println("Player bounds: " + playerBounds);
 
             for (Enemy enemy : getCurrentTileMap().getEnemies()) {
-                Rectangle2D enemyBounds = enemy.getBounds();
+                Rectangle2D enemyBounds = enemy.getAttackBounds();
                 System.out.println("Checking collision with enemy at (" + enemy.getX() + ", " + enemy.getY() + ")");
                 System.out.println("Enemy bounds: " + enemyBounds);
 
@@ -176,18 +193,57 @@ public class GameLoop extends AnimationTimer {
                 }
             }
         }
+        if (!collisionDetected) {
+            for (PNJ pnj : getCurrentTileMap().getPNJs()) {
+                if (playerBounds.intersects(pnj.getBounds())) {
+                    collisionDetected = true;
+                    break;
+                }
+            }
+        }
 
         if (!collisionDetected) {
             getCurrentPlayer().move(dx, dy);
         }
+        
     }
 
-    private void updateHealthDisplay() {
+   /* private void updateHealthDisplay() {
         healthLabel.setText("Health: " + getCurrentPlayer().getHealth());
+    }*/
+
+    /*private void updateInventoryDisplay() {
+        inventoryDisplay.getChildren().clear();
+        Map<String, Integer> itemCounts = new HashMap<>();
+
+        for (GameObject item : getCurrentPlayer().getInventory().getItems()) {
+            String itemName = item.getClass().getSimpleName();
+            itemCounts.put(itemName, itemCounts.getOrDefault(itemName, 0) + 1);
+        }
+
+        for (Map.Entry<String, Integer> entry : itemCounts.entrySet()) {
+            String itemName = entry.getKey();
+            count = entry.getValue();
+
+            ImageView itemImageView = new ImageView(getCurrentPlayer().getInventory().getItemImage(itemName));
+            itemImageView.setFitWidth(32);
+            itemImageView.setFitHeight(32);
+
+            Label itemLabel = new Label("x" + count);
+            HBox itemBox = new HBox(5, itemImageView, itemLabel);
+
+            inventoryDisplay.getChildren().add(itemBox);
+        }
+    }*/
+    private void drawHealthDisplay(GraphicsContext gc) {
+        gc.fillText("Health: " + getCurrentPlayer().getHealth(), 10, 20);
     }
 
-    private void updateInventoryDisplay() {
-        inventoryDisplay.getChildren().clear();
+    private void drawInventoryDisplay(GraphicsContext gc) {
+        double x = canvas.getWidth() - 200; // Position de départ en X pour l'affichage de l'inventaire
+        double y = 10; // Position de départ en Y pour l'affichage de l'inventaire
+        double itemSize = 32; // Taille de chaque item
+
         Map<String, Integer> itemCounts = new HashMap<>();
 
         for (GameObject item : getCurrentPlayer().getInventory().getItems()) {
@@ -199,17 +255,14 @@ public class GameLoop extends AnimationTimer {
             String itemName = entry.getKey();
             int count = entry.getValue();
 
-            ImageView itemImageView = new ImageView(getCurrentPlayer().getInventory().getItemImage(itemName));
-            itemImageView.setFitWidth(32);
-            itemImageView.setFitHeight(32);
-
-            Label itemLabel = new Label("x" + count);
-            HBox itemBox = new HBox(5, itemImageView, itemLabel);
-
-            inventoryDisplay.getChildren().add(itemBox);
+            Image itemImage = getCurrentPlayer().getInventory().getItemImage(itemName);
+            if (itemImage != null) {
+                gc.drawImage(itemImage, x, y, itemSize, itemSize);
+                gc.fillText("x" + count, x + itemSize + 5, y + itemSize / 2);
+                y += itemSize + 10; // Espacement entre les items
+            }
         }
     }
-
     private TileMap getCurrentTileMap() {
         return worlds.get(currentWorldIndex).getTileMap();
     }

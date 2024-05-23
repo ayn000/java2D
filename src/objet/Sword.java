@@ -6,7 +6,7 @@ public class Sword extends GameObject {
     private int attackBoost;
 
     public Sword(int x, int y, int tileSize, String imagePath, int attackBoost) {
-        super(x, y, tileSize, imagePath);
+        super(x, y, tileSize, imagePath,30);
         this.attackBoost = attackBoost;
     }
 
@@ -20,5 +20,11 @@ public class Sword extends GameObject {
     public void applyEffect(Player player) {
         player.setAttack(player.getAttack() + attackBoost);
     }
+
+	@Override
+	public int getPrice() {
+		// TODO Auto-generated method stub
+		return this.price;
+	}
 }
 

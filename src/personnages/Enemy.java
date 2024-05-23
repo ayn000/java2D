@@ -11,6 +11,7 @@ public class Enemy {
     private Image enemyImage;
     private int health;
     private int attack;
+    public double range;
 
     public Enemy(int x, int y, int tileSize, String imagePath, int health, int attack) {
         this.x = x;
@@ -19,6 +20,7 @@ public class Enemy {
         this.enemyImage = new Image(imagePath);
         this.health = health;
         this.attack = attack;
+        this.range = 0.5;
     }
 
     public int getX() {
@@ -35,6 +37,10 @@ public class Enemy {
 
     public int getAttack() {
         return attack;
+    }
+    
+    public Rectangle2D getAttackBounds() {
+        return new Rectangle2D(x*tileSize-(tileSize/2-3), y*tileSize-(tileSize/2-3), tileSize+3, tileSize+3);
     }
     public void decreaseHealth(int amount) {
         this.health -= amount;

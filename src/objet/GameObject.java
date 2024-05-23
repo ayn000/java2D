@@ -10,12 +10,14 @@ public abstract class GameObject {
     protected int y;
     protected int tileSize;
     protected Image image;
+    protected int price;
 
-    public GameObject(int x, int y, int tileSize, String imagePath) {
+    public GameObject(int x, int y, int tileSize, String imagePath,int price) {
         this.x = x;
         this.y = y;
         this.tileSize = tileSize;
         this.image = new Image(imagePath);
+        this.price = price;
     }
 
     public int getX() {
@@ -45,4 +47,6 @@ public abstract class GameObject {
     public abstract void onPlayerContact(Player player);
 
     public abstract void applyEffect(Player player);
+
+	public abstract int getPrice();
 }
